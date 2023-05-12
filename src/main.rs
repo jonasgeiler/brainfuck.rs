@@ -171,12 +171,12 @@ fn main() {
             ',' => Some(Op::Read),
             '[' => Some(Op::LoopBegin),
             ']' => Some(Op::LoopEnd),
-            _ => None
+            _ => None,
         };
 
         match op {
             Some(op) => operations.push(op),
-            None => ()
+            None => (),
         }
     }
 
@@ -188,10 +188,30 @@ fn main() {
     let mut c = 0;
     while i < operations.len() {
         match operations[i] {
-            Op::IncrementPointer => mem_ptr = if mem_ptr == mem_length - 1 { 0 } else { mem_ptr + 1 },
-            Op::DecrementPointer => mem_ptr = if mem_ptr == 0 { mem_length - 1 } else { mem_ptr - 1 },
+            Op::IncrementPointer => {
+                if mem_ptr == mem_length - 1 {
+                    mem_ptr = 0;
+                } else {
+                    mem_ptr += 1;
+                }
+            }
+            Op::DecrementPointer => {
+                if mem_ptr == 0 {
+                    mem_ptr = mem_length - 1;
+                } else {
+                    mem_ptr -= 1;
+                }
+            }
             Op::Increment => mem[mem_ptr] = mem[mem_ptr].wrapping_add(1),
             Op::Decrement => mem[mem_ptr] = mem[mem_ptr].wrapping_sub(1),
+            Op::Write => print!("{}", mem[mem_ptr] as char),
+            Op::Read => {
+                let mut input: [u8; 1] = [0; 1];
+                io::stdin()
+                    .read_exact(&mut input)
+                    .expect("failed to read stdin");
+                mem[mem_ptr] = input[0];
+            }
             Op::LoopBegin => {
                 if mem[mem_ptr] == 0 {
                     i += 1;
@@ -199,12 +219,12 @@ fn main() {
                         match operations[i] {
                             Op::LoopBegin => c += 1,
                             Op::LoopEnd => c -= 1,
-                            _ => ()
+                            _ => (),
                         }
                         i += 1;
                     }
                 }
-            },
+            }
             Op::LoopEnd => {
                 if mem[mem_ptr] != 0 {
                     i -= 1;
@@ -212,20 +232,12 @@ fn main() {
                         match operations[i] {
                             Op::LoopEnd => c += 1,
                             Op::LoopBegin => c -= 1,
-                            _ => ()
+                            _ => (),
                         }
                         i -= 1;
                     }
                 }
-            },
-            Op::Read => {
-                let mut input: [u8; 1] = [0; 1];
-                io::stdin()
-                    .read_exact(&mut input)
-                    .expect("failed to read stdin");
-                mem[mem_ptr] = input[0];
-            },
-            Op::Write => print!("{}", mem[mem_ptr] as char)
+            }
         }
         i += 1;
     }
